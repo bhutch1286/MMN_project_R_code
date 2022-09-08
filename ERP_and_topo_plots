@@ -1,0 +1,233 @@
+library(tidyverse)
+library(normentR)
+library(readxl)
+library(tibble)
+library(dplyr)
+library(Rmisc)
+library(tidyr)
+library(ggplot2)
+
+#--------------MMN-------------------------------------------------------------#
+
+#importing data
+excel_sheets("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx")
+excel_sheets("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx")
+MMN_Punish_Dev <- read_excel("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx", sheet = 1)
+MMN_Reward_Dev <- read_excel("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx", sheet = 2)
+MMN_Standard_Val <- read_excel("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx", sheet = 3)
+MMN_Punish_Ctrl <- read_excel("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx",  sheet = 4)
+MMN_Reward_Ctrl <- read_excel("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx",  sheet = 5)
+MMN_Standard_Ctrl <- read_excel("G:/Documents/MMN_RawOutput_PIDbySamples.xlsx",  sheet = 6)
+
+MMN_Punish_Dev <- add_column(.data = MMN_Punish_Dev,
+                             ERP = "MMN",
+                             condition = "punish_deviant")
+
+MMN_Reward_Dev <- add_column(.data = MMN_Reward_Dev,
+                             ERP = "MMN",
+                             condition = "reward_deviant")
+
+MMN_Standard_Val <- add_column(.data = MMN_Standard_Val,
+                             ERP = "MMN",
+                             condition = "standard_value")
+
+MMN_Punish_Ctrl <- add_column(.data = MMN_Punish_Ctrl,
+                             ERP = "MMN",
+                             condition = "punish_control")
+
+MMN_Reward_Ctrl <- add_column(.data = MMN_Reward_Ctrl,
+                             ERP = "MMN",
+                             condition = "reward_control")
+
+MMN_Standard_Ctrl <- add_column(.data = MMN_Standard_Ctrl,
+                             ERP = "MMN",
+                             condition = "standard_control")
+
+
+df_MMN <- merge(MMN_Punish_Dev, MMN_Reward_Dev, all=TRUE)
+df_MMN <- merge(df_MMN, MMN_Standard_Val, all=TRUE)
+df_MMN <- merge(df_MMN, MMN_Punish_Ctrl, all=TRUE)
+df_MMN <- merge(df_MMN, MMN_Reward_Ctrl, all=TRUE)
+df_MMN <- merge(df_MMN, MMN_Standard_Ctrl, all=TRUE)
+
+df_MMN$PID <- as.factor(df_MMN$PID)
+df_MMN$ERP <- as.factor(df_MMN$ERP)
+df_MMN$condition <- as.factor(df_MMN$condition)
+df_MMN <- na.omit(df_MMN)
+
+#calculate mean and standard error
+df_MMN_mean <- aggregate(df_MMN[2:154], list(df_MMN$condition), FUN = mean)
+df_MMN_SEM <- aggregate(df_MMN[2:154], list(df_MMN$condition), FUN = sem)
+
+df_MMN <- merge(df_MMN_mean, df_MMN_SEM, all = TRUE)
+
+df_MMN$stat <- c("mean", "SE", "mean", "SE", "mean", "SE", "mean", "SE", "mean", "SE", "mean", "SE")
+df_MMN_mean <- filter(df_MMN, stat == "mean")
+df_MMN_SE <- filter(df_MMN, stat == "SE")
+
+df_MMN_mean_long <- reshape2::melt(df_MMN_mean,
+                                  id.vars = c("Group.1", "stat"),
+                                  variable.name = "Time", 
+                                  value.name = "M_amplitude")
+
+df_MMN_SE_long <- reshape2::melt(df_MMN_SE,
+                                id.vars = c("Group.1", "stat"),
+                                variable.name = "Time", 
+                                value.name = "SE_amplitude")
+
+df_MMN_mean_long <- df_MMN_mean_long[,-2]
+df_MMN_SE_long <- df_MMN_SE_long[,-2]
+df_MMN_both_long <- merge(df_MMN_mean_long, df_MMN_SE_long)
+df_MMN_both_long$Time <- as.character(df_MMN_both_long$Time)
+df_MMN_both_long$Time <- as.numeric(df_MMN_both_long$Time)
+str(df_MMN_both_long)
+
+df_MMN_both_long$SE_lb <- df_MMN_both_long$M_amplitude - df_MMN_both_long$SE_amplitude
+df_MMN_both_long$SE_ub <- df_MMN_both_long$M_amplitude + df_MMN_both_long$SE_amplitude
+df_MMN_both_long$SE_2_lb <- df_MMN_both_long$M_amplitude - (df_MMN_both_long$SE_amplitude * 2)
+df_MMN_both_long$SE_2_ub <- df_MMN_both_long$M_amplitude + (df_MMN_both_long$SE_amplitude * 2)
+
+df_MMN_both_long <- dplyr::rename(df_MMN_both_long, Condition = Group.1)
+
+
+#-------MMN ERP plots
+
+MMN_plot <- ggplot(df_MMN_both_long) +
+  aes(x = Time, y = M_amplitude, colour = Condition) +
+  geom_ribbon(aes(ymin = SE_2_lb, ymax = SE_2_ub, fill = Condition), alpha=0.08, linetype=0) +
+  geom_line(size = 0.75) +
+  ggthemes::theme_base() +
+  theme(legend.position = c(0.9,0.9),
+        axis.text.x = element_text(vjust = -0.1)) +
+  coord_cartesian() +
+  labs(x = "Time (ms)", 
+       y = "Amplitude (µV)") +
+  theme_norment(ticks = TRUE, grid = FALSE) #having this here puts legend at bottom
+  # + scale_fill_viridis_d(option = "inferno", direction = -1) +
+  #scale_color_viridis_d(option = "inferno", direction = -1) 
+shift_axes(MMN_plot, x = 0, y = 0) 
+
+#-------MMN topo plots
+bin_1 <- read_excel("Documents/plots/bins.xlsx", sheet=1)
+bin_2 <- read_excel("Documents/plots/bins.xlsx", sheet=2)
+bin_3 <- read_excel("Documents/plots/bins.xlsx", sheet=3)
+bin_4 <- read_excel("Documents/plots/bins.xlsx", sheet=4)
+bin_5 <- read_excel("Documents/plots/bins.xlsx", sheet=5)
+bin_6 <- read_excel("Documents/plots/bins.xlsx", sheet=6)
+
+bin_1 <- electrode_locations(data = bin_1, montage = "biosemi32")
+bin_2 <- electrode_locations(data = bin_2, montage = "biosemi32")
+bin_3 <- electrode_locations(data = bin_3, montage = "biosemi32")
+bin_4 <- electrode_locations(data = bin_4, montage = "biosemi32")
+bin_5 <- electrode_locations(data = bin_5, montage = "biosemi32")
+bin_6 <- electrode_locations(data = bin_6, montage = "biosemi32")
+
+topoplot(bin_5,
+         palette = "viridis", 
+         limits = c(-1,1),
+         contour=FALSE,
+         method="Biharmonic",
+         r = 95,
+         grid_res=300,
+         interp_limit="skirt",
+         chan_marker="point",
+         scaling=1)#,
+         #highlights=c('Cz', 'Pz', 'CP1', 'CP2'))
+
+
+
+#--------------P3a-------------------------------------------------------------#
+P3_Punish_Dev <- read_excel("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx", sheet = 1)
+P3_Reward_Dev <- read_excel("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx", sheet = 2)
+P3_Standard_Val <- read_excel("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx", sheet = 3)
+P3_Punish_Ctrl <- read_excel("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx",  sheet = 4)
+P3_Reward_Ctrl <- read_excel("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx",  sheet = 5)
+P3_Standard_Ctrl <- read_excel("G:/Documents/P3a_RawOutput_PIDbySamples.xlsx",  sheet = 6)
+
+P3_Punish_Dev <- add_column(.data = P3_Punish_Dev,
+                             ERP = "P3",
+                             condition = "punish_deviant")
+
+P3_Reward_Dev <- add_column(.data = P3_Reward_Dev,
+                             ERP = "P3",
+                             condition = "reward_deviant")
+
+P3_Standard_Val <- add_column(.data = P3_Standard_Val,
+                               ERP = "P3",
+                               condition = "standard_value")
+
+P3_Punish_Ctrl <- add_column(.data = P3_Punish_Ctrl,
+                              ERP = "P3",
+                              condition = "punish_control")
+
+P3_Reward_Ctrl <- add_column(.data = P3_Reward_Ctrl,
+                              ERP = "P3",
+                              condition = "reward_control")
+
+P3_Standard_Ctrl <- add_column(.data = P3_Standard_Ctrl,
+                                ERP = "P3",
+                                condition = "standard_control")
+
+
+df_P3 <- merge(P3_Punish_Dev, P3_Reward_Dev, all=TRUE)
+df_P3 <- merge(df_P3, P3_Standard_Val, all=TRUE)
+df_P3 <- merge(df_P3, P3_Punish_Ctrl, all=TRUE)
+df_P3 <- merge(df_P3, P3_Reward_Ctrl, all=TRUE)
+df_P3 <- merge(df_P3, P3_Standard_Ctrl, all=TRUE)
+
+df_P3$PID <- as.factor(df_P3$PID)
+df_P3$ERP <- as.factor(df_P3$ERP)
+df_P3$condition <- as.factor(df_P3$condition)
+df_P3 <- na.omit(df_P3)
+
+#calculate mean and standard error
+df_P3_mean <- aggregate(df_P3[2:154], list(df_P3$condition), FUN = mean)
+df_P3_SEM <- aggregate(df_P3[2:154], list(df_P3$condition), FUN = sem)
+
+df_P3 <- merge(df_P3_mean, df_P3_SEM, all = TRUE)
+
+df_P3$stat <- c("mean", "SE", "mean", "SE", "mean", "SE", "mean", "SE", "mean", "SE", "mean", "SE")
+df_P3_mean <- filter(df_P3, stat == "mean")
+df_P3_SE <- filter(df_P3, stat == "SE")
+
+df_P3_mean_long <- reshape2::melt(df_P3_mean,
+                                   id.vars = c("Group.1", "stat"),
+                                   variable.name = "Time", 
+                                   value.name = "M_amplitude")
+
+df_P3_SE_long <- reshape2::melt(df_P3_SE,
+                                 id.vars = c("Group.1", "stat"),
+                                 variable.name = "Time", 
+                                 value.name = "SE_amplitude")
+
+df_P3_mean_long <- df_P3_mean_long[,-2]
+df_P3_SE_long <- df_P3_SE_long[,-2]
+df_P3_both_long <- merge(df_P3_mean_long, df_P3_SE_long)
+df_P3_both_long$Time <- as.character(df_P3_both_long$Time)
+df_P3_both_long$Time <- as.numeric(df_P3_both_long$Time)
+str(df_P3_both_long)
+
+df_P3_both_long$SE_lb <- df_P3_both_long$M_amplitude - df_P3_both_long$SE_amplitude
+df_P3_both_long$SE_ub <- df_P3_both_long$M_amplitude + df_P3_both_long$SE_amplitude
+df_P3_both_long$SE_2_lb <- df_P3_both_long$M_amplitude - (df_P3_both_long$SE_amplitude * 2)
+df_P3_both_long$SE_2_ub <- df_P3_both_long$M_amplitude + (df_P3_both_long$SE_amplitude * 2)
+df_P3_both_long <- dplyr::rename(df_P3_both_long, Condition = Group.1)
+
+
+#-------P3a ERP plots
+
+p3a_plot <- ggplot(df_P3_both_long) +
+  aes(x = Time, y = M_amplitude, colour = Condition) +
+  geom_ribbon(aes(ymin = SE_lb, ymax = SE_ub, fill = Condition), alpha=0.1, linetype=0) +
+  geom_line(size = 0.5) +
+  ggthemes::theme_base() +
+  theme(legend.position = c(0.9,0.9),
+        axis.text.x = element_text(vjust = -0.1)) +
+  coord_cartesian() +
+  labs(x = "Time (ms)", 
+       y = "Amplitude (µV)") +
+  theme_norment(ticks = TRUE, grid = FALSE) #having this here puts legend at bottom
+shift_axes(p3a_plot, x = 0, y = 0)
+
+#-------P3a topo plots
+
