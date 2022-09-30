@@ -9,11 +9,11 @@ output_filename = 'MMNproject.GND'
 
 %need to ensure matlab can access python; skip this if matlab already
 %has access to python
-pyversion C:\Users\blu12\AppData\Local\Programs\Python\Python37\python
+pyversion C:\Programs\Python\Python37\python
 pe = pyenv;
 pe.Version
 
-ConfigFileName = 'Config_Alycia_0822';
+ConfigFileName = 'Config_0822';
 Current_File_Path = pwd;
 addpath('Functions');
 ConfigFilePath = [Current_File_Path filesep 'SupportingDocs' filesep ConfigFileName '.xlsx'];
@@ -94,13 +94,6 @@ GND = decimateGND(GND, 2, 'boxcar', [-200 -1], 'yes', 0); %This filter averages 
 %visualize
 gui_erp(GND)
 
-%standards vs deviants
-GND = bin_mean(GND, 1, 2, 'punish + reward'); %bin 15
-GND = bin_mean(GND, 4, 5, 'punish + reward ctrl'); %bin 16
-GND = bin_mean(GND, 15, 16, 'deviants'); %bin 17
-GND = bin_mean(GND, 3, 6, 'standards'); %bin 18
-
-
 %% Mass Univariate Analyses: running the MUA
 
 %Make sure all EEGLAB functions are on the MATLAB path
@@ -120,7 +113,7 @@ chan_hood=spatial_neighbors(chanlocs,max_dist); %this determines threshold for n
 MMN_time_wind = [100 200];
 P3a_time_wind = [200 300];
 MMN_channels = {'Fz', 'FC1', 'FC2', 'Cz'};
-P3a_channels = {'Cz', 'Pz', 'CP1', 'CP2'}; %just basing these off of Alycia's analysis. Have tried using a front/back electrodes selection and no difference
+P3a_channels = {'Cz', 'Pz', 'CP1', 'CP2'};
 
 %2 x 2 within-subject ANOVA [all channels, all time points]
 GND = FclustGND(GND, ...
@@ -169,20 +162,7 @@ GND = FclustGND(GND, ...
 F_sig_raster(GND, 3,...
              'effect', 'valueXvalence'); %plot significant F values for interaction term
 
-         
-         
-%2 x 2 within-subject ANOVA [all channels, all time points]
-GND = FclustGND(GND, ...
-                'bins', [17,18], ...  
-                'factor_names', 'oddball', ...  
-                'factor_levels', 2, ...
-                'mean_wind', 'no',...
-                'chan_hood', chan_hood, ...
-                'n_perm', n_perm, ...
-                'plot_raster', 'no',...
-                'save_GND', 'yes', ...
-                'output_file', 'deviants_v_standards.xlsx');
-            
+           
 %% Pair-wise follow-ups for main effects [MMN]
 
 %Main effect of Value (Valued vs Not valued)
