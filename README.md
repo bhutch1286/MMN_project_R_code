@@ -1,5 +1,6 @@
-# MMN_project_R_code
-R processing, analysis, and plotting codes for MMN/p3a auditory oddball project.
+# MMN_project_code
+1. R analysis and plotting codes for MMN/p3a auditory oddball project.
+2. Matlab mass univariate analysis script.
 
 Currently under way.
 
