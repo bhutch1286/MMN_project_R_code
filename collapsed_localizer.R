@@ -52,28 +52,18 @@ bin_6 <- bin_output_list[[6]] #standard control
 
 #------preparing data
 
-#--difference waves
+#-difference waves
 
-#need to do some matrix operations
 #the following works because R does element wise for normal operators (but need to remove ID column first)
 punish = bin_1[,-c(1)] - bin_3[,-c(1)] 
 reward = bin_2[,-c(1)] - bin_3[,-c(1)]
 punishctrl = bin_4[,-c(1)] - bin_6[,-c(1)]
 rewardctrl = bin_5[,-c(1)] - bin_6[,-c(1)]
 
-#test with the following:
-#vector_1 <- pull(MMN_Punish_Dev, '-0.19609375000000001') #can sub out for data column of any time point
-#vector_2 <- pull(MMN_Standard_Val, '-0.19609375000000001')
-#test <- vector_1 - vector_2
-#test_against <- pull(MMN_punish, '-0.19609375000000001')
-#test == test_against #if any false, then something is wrong
-
-#--collapsed localizer (averaging all difference waves together)
+#-collapsed localizer (averaging all difference waves together)
 
 collapsed_localizer <- (punish + reward + punishctrl + rewardctrl) / 4 #average together each condition (punish, reward, punish control, reward control)
 collapsed_localizer[43,] <- colMeans(collapsed_localizer) #create new row which averages over each row (i.e. participant)
-
-write.csv(collapsed_localizer, 'p3a_cl.csv')
 
 #------finding peak value and time
 
@@ -81,11 +71,14 @@ peak_value <- max(abs(collapsed_localizer[43,])) #find the maximum value across 
 peak_time <- which(apply(collapsed_localizer, 2, function(x) any(grepl(peak_value, x)))) #find what column (time point) peak value is located
 peak_time <- names(peak_time)
 
+#------output
 
 if (analyze == 1){
   MMN_peak_time <- c(peak_time, peak_value)
+  write.csv(collapsed_localizer, 'MMN_cl.csv')
   write.csv(MMN_peak_time, 'CL_method_MMN_peak.csv')
 } else {
   p3a_peak_time <- c(peak_time, peak_value)
+  write.csv(collapsed_localizer, 'p3a_cl.csv')
   write.csv(p3a_peak_time, 'CL_method_p3a_peak.csv')
 }
