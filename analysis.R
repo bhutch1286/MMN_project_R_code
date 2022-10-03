@@ -148,32 +148,3 @@ df.p3a %>%
   aes(x = valence, y = amplitude) +
   geom_boxplot(fill = "#EF562D") +
   ggthemes::theme_par()
-
-
-
-#---------------exclusions [checking exclusions as Alycia]
-
-df.MMN$exclude <- df.MMN$subject == 4 |
-  df.MMN$subject == 8 |
-  df.MMN$subject == 35 |
-  df.MMN$subject == 45 
-df.MMN_excl <- df.MMN[df.MMN$exclude == FALSE,]
-
-df.MMN_excl.aov <- anova_test(data = df.MMN_excl,
-                              dv = amplitude,
-                              wid = subject,
-                              within = c(valence, associated_value))
-df.MMN_excl.aov
-
-
-df.p3a$exclude <- df.p3a$subject == 4 |
-  df.p3a$subject == 8 |
-  df.p3a$subject == 35 |
-  df.p3a$subject == 45 
-df.p3a_excl <- df.p3a[df.p3a$exclude == FALSE,]
-
-df.p3a_excl.aov <- anova_test(data = df.p3a_excl,
-                              dv = amplitude,
-                              wid = subject,
-                              within = c(valence, associated_value))
-df.p3a_excl.aov
