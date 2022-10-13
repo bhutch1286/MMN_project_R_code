@@ -67,7 +67,12 @@ collapsed_localizer[43,] <- colMeans(collapsed_localizer) #create new row which 
 
 #------finding peak value and time
 
-peak_value <- max(abs(collapsed_localizer[43,])) #find the maximum value across columns (i.e. time points) in absolute term (i.e. ignoring +/-)
+if (analyze == 1){
+  peak_value <- min(collapsed_localizer[43,]) #find the maximum negative voltage value across columns (i.e. time points) for MMN peak
+} else {
+  peak_value <- max(collapsed_localizer[43,]) #find the maximum positive voltage value across columns (i.e. time points) for p3a peak
+}
+
 peak_time <- which(apply(collapsed_localizer, 2, function(x) any(grepl(peak_value, x)))) #find what column (time point) peak value is located
 peak_time <- names(peak_time)
 
