@@ -23,14 +23,13 @@ analyze <- 0
 #------importing data
 
 if (analyze == 1){
-  look_in <- "MMN triggerfix no blink rejection/"
+  look_in <- "MMN/"
 } else {
-  look_in <- "p3a triggerfix no blink rejection/"
+  look_in <- "p3a/"
 }
 
-
-sheet_number <- length(excel_sheets(paste("G:/Flinders work/Project 2 MMN/project-2-pipeline/grand averages/", look_in, "RawOutput_PIDbySamples.xlsx", sep = "")))
-spreadsheet_str <- paste("G:/Flinders work/Project 2 MMN/project-2-pipeline/grand averages/", look_in, "RawOutput_PIDbySamples.xlsx", sep = "")
+sheet_number <- length(excel_sheets(paste("G:/grand averages/", look_in, "RawOutput_PIDbySamples.xlsx", sep = "")))
+spreadsheet_str <- paste("G:/grand averages/", look_in, "RawOutput_PIDbySamples.xlsx", sep = "")
 
 spreadsheet_list <- list()
 for (i in 1:sheet_number) {
