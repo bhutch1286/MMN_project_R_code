@@ -1,10 +1,14 @@
 library(readxl)
 
-"Script takes any .xlsx file of averaged ERP data and identifies the absolute positive or negative peak amplitude and time point.
+"Script takes any .xlsx file of averaged ERP data and identifies the absolute positive or negative peak amplitude and time point 
+      from all participants and conditions pooled together.
+
 The xlsx file should be set up as:
   rows = participants
   columns = timepoints
-  spreadsheets = condition"
+  spreadsheets = conditions"
+
+
 
 #-----------which do you want to run? 0 for MMN, 1 for P3a
 
