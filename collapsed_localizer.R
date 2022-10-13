@@ -1,8 +1,10 @@
 library(readxl)
-library(dplyr)
-library(rstatix)
-library(reshape2)
-library(ggplot2)
+
+"Script takes any .xlsx file of averaged ERP data and identifies the absolute positive or negative peak amplitude and time point.
+The xlsx file should be set up as:
+  rows = participants
+  columns = timepoints
+  spreadsheets = condition"
 
 #-----------which do you want to run? 0 for MMN, 1 for P3a
 
